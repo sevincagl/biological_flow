@@ -1,0 +1,150 @@
+#include <iostream>
+using namespace std;
+
+struct BloodVessal {
+    int to;                       //Which organ it goes to
+    BloodVessal * next;           //Next vessal
+
+};
+//ORGAN VE YAPISI
+struct OrganUnit {
+    string name ;               //Name of organ
+    int O2;                     //Oxygen
+    int CO2;                    //Carbondioxide
+    BloodVessal * vessals;         //keeps its edge like a linked list
+    bool active;                   //Is the organ active or not?
+};
+class BiologicalFlowGraph{
+public:
+    OrganUnit* organs;          //Dynamic array holding all organs
+    int size;                   //number of organs
+
+
+    //CONSTRUCTOR
+    BiologicalFlowGraph(int num){
+        size = num;
+        organs = new OrganUnit[num];           //Allocate memory for organ array
+        for(int i=0;i<num;i++){                //make a organnode  array
+            organs[i].vessals=NULL;            //no connections at the beginning
+        }
+    }
+
+       //  DEFINE ORGAN, O2 AND  CO2
+    void defineOrgan(int id, string name, int o2, int co2) {
+
+        organs[id].name = name;               //assign organ names
+        organs[id].O2 = o2;                   //O2 level in the organ
+        organs[id].CO2 = co2;                 //CO2
+        organs[id].active=true;               //this shows that the organ is active
+    }
+
+
+    void addvessel(int id, int to) {
+
+        BloodVessal * e = new BloodVessal();                //create new vessal
+        e->to = to;                                         //Destination organ index
+        e->next = organs[id].vessals;
+        organs[id].vessals = e;                             //ınsert vessal at organ
+    }
+
+       // PRINT GRAPH
+     void printGraph() {   //T(n)=8n+3e    O(n+e)
+
+         //TRAVERSE ALL ORGANNODES
+         //It visits every Organnode and every vessal.
+        for (int i = 0; i < size; i++) {                      //n         //It traverses the entire node array.
+            cout << organs[i].name;                           //n
+            if(organs[i].active){                             //n         // shows the active organs
+                cout << " ( O2: " << organs[i].O2             //n
+                 << ", CO2: " << organs[i].CO2 << " ) -> ";   //n
+}
+            else
+                cout<<" ( INACTIVE ) ->";                     //n     //If the organ is inactive, it only writes inactive
+
+            //TRAVERSE VESSAL
+            BloodVessal * temp = organs[i].vessals;           //n     //i. iterates through the edge list of the node
+            while (temp != NULL) {                            //e
+                cout << organs[temp->to].name << " ";         //e     // Print connected organ
+                temp = temp->next;                            //e     // move to next
+            }
+            cout << endl;                                     //n
+        }
+     }
+
+    // THE ORGAN İS RENDERED PASSİVE BY LOWERİNG O2 AND CO2 VALUES TO 0
+    void deletegraph(int id) {
+
+        organs[id].active=false;                                //THE SELECTED ORGAN BECOMES PASSIVE
+        organs[id].O2=0;                                        //reset oxygen
+        organs[id].CO2=0;                                       //reset carbondioxide
+
+        cout<<"\n"<<organs[id].name<< " HAS BEEN DEACTIVETED!!\n\n";
+        printGraph();                                           // Display updated graph
+    }
+
+    //SORT ORGANS BY O2 AND CO2 RATİO
+    void sorting() {
+
+        OrganUnit arr[size];                           //Temporary array (To avoid breaking the node structure)
+
+        for(int i=0;i<size;i++){                       //Copy all organs into temporary array
+                arr[i].name= organs[i].name;
+                arr[i].CO2= organs[i].CO2;
+                arr[i].O2= organs[i].O2;
+}
+        //Sort by O2 ratio
+        for(int i=0;i<size-1;i++){                //SORTING FROM SMALLEST TO LARGEST
+            for(int j=0;j<size-1;j++){
+                if(arr[j].O2 > arr[j+1].O2){
+                    OrganUnit te = arr[j];        //Preserve the old value
+                    arr[j]=arr[j+1];              //Put the new value
+                    arr[j+1]=te;                  //Put back the hidden value
+                }
+            }
+        }
+        cout<<"\n SORTED BY O2 LEVEL: \n";
+        for(int i=0;i<size;i++)                      //Shows the ranked O2 values and the corresponding organ.
+            cout<< "  O2: "<<arr[i].O2<<"  CO2: "<<arr[i].CO2<<"  " <<arr[i].name<<"\n";
+
+        //Sort by CO2 ratio
+        for(int i=0;i<size-1;i++){
+            for(int j=0;j<size-1;j++){
+                if(arr[j].CO2 > arr[j+1].CO2){
+                    OrganUnit te = arr[j];
+                    arr[j]=arr[j+1];
+                    arr[j+1]=te;
+                }
+            }
+        }
+        cout<<"\n SORTED BY CO2 LEVEL: \n";
+        for(int i=0;i<size;i++){                    //Show the ranked CO2 values and the corresponding organ
+            cout<< "  O2: "<<arr[i].O2<<"  CO2: "<<arr[i].CO2<<"  " <<arr[i].name<<"\n";
+      }
+   } };
+int main()
+{
+    BiologicalFlowGraph g(5);
+
+    g.defineOrgan(0,"RIGHT HEART",64,5);  //It gives the organ's index number, name, and O2 and CO2 values.
+    g.defineOrgan(1,"LUNG",97,3);
+    g.defineOrgan(2,"LEFT HEART",99,2);
+    g.defineOrgan(3,"LIVER",70,10);
+    g.defineOrgan(4,"KIDNEY",70,9);
+
+    // Create directed connections between organs
+    g.addvessel(0,1);                 //Organ at index 0 is connected to organ at index 1.
+    g.addvessel(1,2);                 // 1->2
+    g.addvessel(2,3);                 // 2->3
+    g.addvessel(2,4);                 // 2->4
+    g.addvessel(3,0);                 // 3->0
+    g.addvessel(4,0);                 // 4->0
+
+
+    g.printGraph();
+    g.sorting();
+
+    g.deletegraph(3);
+    g.sorting();
+
+    return 0;
+}
